@@ -13,12 +13,12 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import os
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.reverse import reverse
 from .views import (
     UserViewSet, TeamViewSet, ActivityViewSet, 
     LeaderboardViewSet, WorkoutViewSet
@@ -45,12 +45,22 @@ def api_root(request, format=None):
     - leaderboard: Individual and team rankings
     - workouts: Personalized workout recommendations
     """
+    # Get Codespace name from environment variable
+    codespace_name = os.environ.get('CODESPACE_NAME')
+    
+    # Construct base URL based on environment
+    if codespace_name:
+        base_url = f'https://{codespace_name}-8000.app.github.dev'
+    else:
+        # Fallback to localhost for local development
+        base_url = 'http://localhost:8000'
+    
     return Response({
-        'users': reverse('user-list', request=request, format=format),
-        'teams': reverse('team-list', request=request, format=format),
-        'activities': reverse('activity-list', request=request, format=format),
-        'leaderboard': reverse('leaderboard-list', request=request, format=format),
-        'workouts': reverse('workout-list', request=request, format=format),
+        'users': f'{base_url}/api/users/',
+        'teams': f'{base_url}/api/teams/',
+        'activities': f'{base_url}/api/activities/',
+        'leaderboard': f'{base_url}/api/leaderboard/',
+        'workouts': f'{base_url}/api/workouts/',
     })
 
 
