@@ -5,12 +5,12 @@ function Teams() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // API endpoint: https://miniature-fiesta-wx74x6gjqxqc94rw-8000.app.github.dev/api/teams/
-  const codespace = process.env.REACT_APP_CODESPACE_NAME || 'localhost:8000';
-  const protocol = process.env.REACT_APP_CODESPACE_NAME ? 'https' : 'http';
-  const apiUrl = `${protocol}://${codespace}/api/teams/`;
-
   useEffect(() => {
+    // API endpoint: https://miniature-fiesta-wx74x6gjqxqc94rw-8000.app.github.dev/api/teams/
+    const codespace = process.env.REACT_APP_CODESPACE_NAME || 'localhost:8000';
+    const protocol = process.env.REACT_APP_CODESPACE_NAME ? 'https' : 'http';
+    const apiUrl = `${protocol}://${codespace}/api/teams/`;
+    
     console.log('Fetching teams from:', apiUrl);
     
     fetch(apiUrl)
@@ -33,7 +33,7 @@ function Teams() {
         setError(error.message);
         setLoading(false);
       });
-  }, [apiUrl]);
+  }, []);
 
   if (loading) return <div className="container mt-4"><div className="spinner-border" role="status"><span className="visually-hidden">Loading...</span></div></div>;
   if (error) return <div className="container mt-4"><div className="alert alert-danger">Error: {error}</div></div>;
