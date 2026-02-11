@@ -44,6 +44,9 @@ class LeaderboardSerializer(serializers.ModelSerializer):
 class WorkoutSerializer(serializers.ModelSerializer):
     """Serializer for Workout model"""
     
+    exercises = serializers.SerializerMethodField()
+    target_muscle_groups = serializers.SerializerMethodField()
+    
     class Meta:
         model = Workout
         fields = [
@@ -51,3 +54,25 @@ class WorkoutSerializer(serializers.ModelSerializer):
             'duration', 'exercises', 'target_muscle_groups', 'created_at'
         ]
         read_only_fields = ['_id', 'created_at']
+    
+    def get_exercises(self, obj):
+        """Convert exercises to proper list of dicts"""
+        if isinstance(obj.exercises, str):
+            import ast
+            try:
+                # Try to evaluate string representation
+                return ast.literal_eval(obj.exercises)
+            except:
+                return []
+        return obj.exercises if obj.exercises else []
+    
+    def get_target_muscle_groups(self, obj):
+        """Convert target_muscle_groups to proper list"""
+        if isinstance(obj.target_muscle_groups, str):
+            import ast
+            try:
+                # Try to evaluate string representation
+                return ast.literal_eval(obj.target_muscle_groups)
+            except:
+                return []
+        return obj.target_muscle_groups if obj.target_muscle_groups else []

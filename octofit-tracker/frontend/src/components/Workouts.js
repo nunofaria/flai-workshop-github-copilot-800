@@ -67,9 +67,9 @@ function Workouts() {
                 
                 <h6>Target Muscle Groups:</h6>
                 <div className="mb-3">
-                  {(typeof workout.target_muscle_groups === 'string'
-                    ? JSON.parse(workout.target_muscle_groups.replace(/'/g, '"'))
-                    : workout.target_muscle_groups
+                  {(Array.isArray(workout.target_muscle_groups) 
+                    ? workout.target_muscle_groups 
+                    : []
                   ).map((group, index) => (
                     <span key={index} className="badge bg-secondary me-1">{group}</span>
                   ))}
@@ -77,25 +77,12 @@ function Workouts() {
 
                 <h6>Exercises:</h6>
                 <ul className="list-group list-group-flush">
-                  {(typeof workout.exercises === 'string'
-                    ? (() => {
-                        try {
-                          // Handle OrderedDict format from Django
-                          const cleanedStr = workout.exercises
-                            .replace(/OrderedDict\(/g, '')
-                            .replace(/\)\]/g, ']')
-                            .replace(/\),/g, ',')
-                            .replace(/'/g, '"');
-                          return JSON.parse(cleanedStr);
-                        } catch (e) {
-                          console.error('Error parsing exercises:', e);
-                          return [];
-                        }
-                      })()
-                    : workout.exercises
+                  {(Array.isArray(workout.exercises) 
+                    ? workout.exercises 
+                    : []
                   ).map((exercise, index) => (
                     <li key={index} className="list-group-item">
-                      <strong>{exercise.name}</strong>
+                      <strong>{exercise.name || 'Exercise'}</strong>
                       {exercise.sets && ` - ${exercise.sets} sets`}
                       {exercise.reps && ` × ${exercise.reps} reps`}
                       {exercise.duration && ` - ${exercise.duration}`}
