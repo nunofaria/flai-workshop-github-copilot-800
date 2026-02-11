@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { API_ENDPOINTS } from '../api/config';
 
 function Activities() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // API endpoint: https://miniature-fiesta-wx74x6gjqxqc94rw-8000.app.github.dev/api/activities/
-  const codespace = process.env.REACT_APP_CODESPACE_NAME || 'localhost:8000';
-  const protocol = process.env.REACT_APP_CODESPACE_NAME ? 'https' : 'http';
-  const apiUrl = `${protocol}://${codespace}/api/activities/`;
-
   useEffect(() => {
-    console.log('Fetching activities from:', apiUrl);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Fetching activities from:', API_ENDPOINTS.ACTIVITIES);
+    }
     
-    fetch(apiUrl)
+    fetch(API_ENDPOINTS.ACTIVITIES)
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -21,10 +19,14 @@ function Activities() {
         return response.json();
       })
       .then(data => {
-        console.log('Activities data received:', data);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Activities data received:', data);
+        }
         // Handle both paginated (.results) and plain array responses
         const activitiesData = data.results || data;
-        console.log('Processed activities data:', activitiesData);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Processed activities data:', activitiesData);
+        }
         setActivities(activitiesData);
         setLoading(false);
       })
@@ -33,7 +35,7 @@ function Activities() {
         setError(error.message);
         setLoading(false);
       });
-  }, [apiUrl]);
+  }, []);
 
   if (loading) return <div className="container mt-4"><div className="spinner-border" role="status"><span className="visually-hidden">Loading...</span></div></div>;
   if (error) return <div className="container mt-4"><div className="alert alert-danger">Error: {error}</div></div>;

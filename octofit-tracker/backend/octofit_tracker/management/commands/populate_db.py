@@ -2,12 +2,44 @@ from django.core.management.base import BaseCommand
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 import random
+import os
+import sys
 
 
 class Command(BaseCommand):
     help = 'Populate the octofit_db database with test data'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--force',
+            action='store_true',
+            help='Force data population without confirmation',
+        )
+
     def handle(self, *args, **kwargs):
+        # Safety check: Prevent running in production
+        if os.environ.get('DJANGO_ENV') == 'production':
+            self.stdout.write(
+                self.style.ERROR(
+                    'ERROR: This command cannot be run in production! '
+                    'It will delete all existing data.'
+                )
+            )
+            sys.exit(1)
+        
+        # Confirmation prompt unless --force is used
+        if not kwargs.get('force'):
+            self.stdout.write(
+                self.style.WARNING(
+                    '\nWARNING: This command will DELETE ALL existing data '
+                    'in the database and populate it with test data.'
+                )
+            )
+            confirmation = input('Are you sure you want to continue? (yes/no): ')
+            if confirmation.lower() != 'yes':
+                self.stdout.write(self.style.ERROR('Operation cancelled.'))
+                return
+        
         # Connect to MongoDB
         client = MongoClient('mongodb://localhost:27017/')
         db = client['octofit_db']

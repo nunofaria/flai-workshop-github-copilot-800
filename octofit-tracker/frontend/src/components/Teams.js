@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_ENDPOINTS } from '../api/config';
 
 function Teams() {
   const [teams, setTeams] = useState([]);
@@ -6,14 +7,11 @@ function Teams() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // API endpoint: https://miniature-fiesta-wx74x6gjqxqc94rw-8000.app.github.dev/api/teams/
-    const codespace = process.env.REACT_APP_CODESPACE_NAME || 'localhost:8000';
-    const protocol = process.env.REACT_APP_CODESPACE_NAME ? 'https' : 'http';
-    const apiUrl = `${protocol}://${codespace}/api/teams/`;
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Fetching teams from:', API_ENDPOINTS.TEAMS);
+    }
     
-    console.log('Fetching teams from:', apiUrl);
-    
-    fetch(apiUrl)
+    fetch(API_ENDPOINTS.TEAMS)
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

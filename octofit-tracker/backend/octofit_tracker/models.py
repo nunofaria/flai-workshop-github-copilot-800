@@ -1,16 +1,28 @@
 from djongo import models
 from django.utils import timezone
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MinLengthValidator
 
 
 class User(models.Model):
     """User model for fitness app users"""
     _id = models.ObjectIdField(primary_key=True)
-    name = models.CharField(max_length=200)
+    name = models.CharField(
+        max_length=200,
+        validators=[MinLengthValidator(1, message="Name cannot be empty")]
+    )
     email = models.EmailField(unique=True)
-    team = models.CharField(max_length=200)
-    avatar = models.CharField(max_length=10)
-    total_points = models.IntegerField(default=0)
+    team = models.CharField(
+        max_length=200,
+        validators=[MinLengthValidator(1, message="Team cannot be empty")]
+    )
+    avatar = models.CharField(
+        max_length=10,
+        validators=[MinLengthValidator(1, message="Avatar cannot be empty")]
+    )
+    total_points = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0, message="Points cannot be negative")]
+    )
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -26,7 +38,10 @@ class Team(models.Model):
     name = models.CharField(max_length=200, unique=True)
     description = models.TextField()
     members = models.JSONField(default=list)
-    total_points = models.IntegerField(default=0)
+    total_points = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0, message="Points cannot be negative")]
+    )
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:

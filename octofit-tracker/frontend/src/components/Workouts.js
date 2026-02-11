@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { API_ENDPOINTS } from '../api/config';
 
 function Workouts() {
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // API endpoint: https://miniature-fiesta-wx74x6gjqxqc94rw-8000.app.github.dev/api/workouts/
-  const codespace = process.env.REACT_APP_CODESPACE_NAME || 'localhost:8000';
-  const protocol = process.env.REACT_APP_CODESPACE_NAME ? 'https' : 'http';
-  const apiUrl = `${protocol}://${codespace}/api/workouts/`;
-
   useEffect(() => {
-    console.log('Fetching workouts from:', apiUrl);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Fetching workouts from:', API_ENDPOINTS.WORKOUTS);
+    }
     
-    fetch(apiUrl)
+    fetch(API_ENDPOINTS.WORKOUTS)
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -21,10 +19,14 @@ function Workouts() {
         return response.json();
       })
       .then(data => {
-        console.log('Workouts data received:', data);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Workouts data received:', data);
+        }
         // Handle both paginated (.results) and plain array responses
         const workoutsData = data.results || data;
-        console.log('Processed workouts data:', workoutsData);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Processed workouts data:', workoutsData);
+        }
         setWorkouts(workoutsData);
         setLoading(false);
       })
@@ -33,7 +35,7 @@ function Workouts() {
         setError(error.message);
         setLoading(false);
       });
-  }, [apiUrl]);
+  }, []);
 
   const getDifficultyBadge = (difficulty) => {
     const badges = {

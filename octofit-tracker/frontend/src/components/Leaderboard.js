@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_ENDPOINTS } from '../api/config';
 
 function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -6,15 +7,12 @@ function Leaderboard() {
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
 
-  // API endpoint: https://miniature-fiesta-wx74x6gjqxqc94rw-8000.app.github.dev/api/leaderboard/
-  const codespace = process.env.REACT_APP_CODESPACE_NAME || 'localhost:8000';
-  const protocol = process.env.REACT_APP_CODESPACE_NAME ? 'https' : 'http';
-  const apiUrl = `${protocol}://${codespace}/api/leaderboard/`;
-
   useEffect(() => {
-    console.log('Fetching leaderboard from:', apiUrl);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Fetching leaderboard from:', API_ENDPOINTS.LEADERBOARD);
+    }
     
-    fetch(apiUrl)
+    fetch(API_ENDPOINTS.LEADERBOARD)
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -22,10 +20,14 @@ function Leaderboard() {
         return response.json();
       })
       .then(data => {
-        console.log('Leaderboard data received:', data);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Leaderboard data received:', data);
+        }
         // Handle both paginated (.results) and plain array responses
         const leaderboardData = data.results || data;
-        console.log('Processed leaderboard data:', leaderboardData);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Processed leaderboard data:', leaderboardData);
+        }
         setLeaderboard(leaderboardData);
         setLoading(false);
       })
@@ -34,7 +36,7 @@ function Leaderboard() {
         setError(error.message);
         setLoading(false);
       });
-  }, [apiUrl]);
+  }, []);
 
   if (loading) return <div className="container mt-4"><div className="spinner-border" role="status"><span className="visually-hidden">Loading...</span></div></div>;
   if (error) return <div className="container mt-4"><div className="alert alert-danger">Error: {error}</div></div>;

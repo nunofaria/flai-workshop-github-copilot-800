@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { API_ENDPOINTS } from '../api/config';
 
 function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // API endpoint: https://miniature-fiesta-wx74x6gjqxqc94rw-8000.app.github.dev/api/users/
-  const codespace = process.env.REACT_APP_CODESPACE_NAME || 'localhost:8000';
-  const protocol = process.env.REACT_APP_CODESPACE_NAME ? 'https' : 'http';
-  const apiUrl = `${protocol}://${codespace}/api/users/`;
-
   useEffect(() => {
-    console.log('Fetching users from:', apiUrl);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Fetching users from:', API_ENDPOINTS.USERS);
+    }
     
-    fetch(apiUrl)
+    fetch(API_ENDPOINTS.USERS)
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -21,10 +19,14 @@ function Users() {
         return response.json();
       })
       .then(data => {
-        console.log('Users data received:', data);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Users data received:', data);
+        }
         // Handle both paginated (.results) and plain array responses
         const usersData = data.results || data;
-        console.log('Processed users data:', usersData);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Processed users data:', usersData);
+        }
         setUsers(usersData);
         setLoading(false);
       })
@@ -33,7 +35,7 @@ function Users() {
         setError(error.message);
         setLoading(false);
       });
-  }, [apiUrl]);
+  }, []);
 
   if (loading) return <div className="container mt-4"><div className="spinner-border" role="status"><span className="visually-hidden">Loading...</span></div></div>;
   if (error) return <div className="container mt-4"><div className="alert alert-danger">Error: {error}</div></div>;
