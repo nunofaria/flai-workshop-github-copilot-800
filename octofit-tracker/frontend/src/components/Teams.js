@@ -56,12 +56,19 @@ function Teams() {
                 <div>
                   <strong>Members:</strong>
                   <ul className="list-group list-group-flush mt-2">
-                    {(typeof team.members === 'string' 
-                      ? JSON.parse(team.members.replace(/'/g, '"'))
-                      : team.members
-                    ).map((member, index) => (
-                      <li key={index} className="list-group-item">{member}</li>
-                    ))}
+                    {(() => {
+                      try {
+                        const members = typeof team.members === 'string' 
+                          ? JSON.parse(team.members.replace(/'/g, '"'))
+                          : Array.isArray(team.members) ? team.members : [];
+                        return members.map((member, index) => (
+                          <li key={index} className="list-group-item">{member}</li>
+                        ));
+                      } catch (error) {
+                        console.error('Error parsing team members:', error);
+                        return <li className="list-group-item text-danger">Error loading members</li>;
+                      }
+                    })()}
                   </ul>
                 </div>
               </div>

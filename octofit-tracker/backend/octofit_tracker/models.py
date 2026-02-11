@@ -1,5 +1,6 @@
 from djongo import models
 from django.utils import timezone
+from django.core.validators import MinValueValidator
 
 
 class User(models.Model):
@@ -37,14 +38,36 @@ class Team(models.Model):
 
 class Activity(models.Model):
     """Activity model for tracking fitness activities"""
+    ACTIVITY_TYPES = [
+        ('running', 'Running'),
+        ('cycling', 'Cycling'),
+        ('swimming', 'Swimming'),
+        ('weightlifting', 'Weightlifting'),
+        ('yoga', 'Yoga'),
+        ('boxing', 'Boxing'),
+    ]
+    
     _id = models.ObjectIdField(primary_key=True)
     user_email = models.EmailField()
     user_name = models.CharField(max_length=200)
-    activity_type = models.CharField(max_length=100)
-    duration = models.IntegerField(help_text="Duration in minutes")
-    distance = models.FloatField(default=0, help_text="Distance in km")
-    calories = models.IntegerField(default=0)
-    points = models.IntegerField(default=0)
+    activity_type = models.CharField(max_length=100, choices=ACTIVITY_TYPES)
+    duration = models.IntegerField(
+        help_text="Duration in minutes",
+        validators=[MinValueValidator(0, message="Duration cannot be negative")]
+    )
+    distance = models.FloatField(
+        default=0,
+        help_text="Distance in km",
+        validators=[MinValueValidator(0.0, message="Distance cannot be negative")]
+    )
+    calories = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0, message="Calories cannot be negative")]
+    )
+    points = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0, message="Points cannot be negative")]
+    )
     date = models.DateTimeField(default=timezone.now)
     notes = models.TextField(blank=True)
 
