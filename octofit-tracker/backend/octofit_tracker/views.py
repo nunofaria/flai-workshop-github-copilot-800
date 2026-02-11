@@ -2,6 +2,8 @@ from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+from django.utils import timezone
+from datetime import timedelta
 from .models import User, Team, Activity, Leaderboard, Workout
 from .serializers import (
     UserSerializer, TeamSerializer, ActivitySerializer,
@@ -67,8 +69,7 @@ class ActivityViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def recent(self, request):
         """Get recent activities (last 30 days)"""
-        from datetime import datetime, timedelta
-        thirty_days_ago = datetime.now() - timedelta(days=30)
+        thirty_days_ago = timezone.now() - timedelta(days=30)
         recent_activities = Activity.objects.filter(date__gte=thirty_days_ago)
         serializer = self.get_serializer(recent_activities, many=True)
         return Response(serializer.data)
@@ -127,9 +128,9 @@ class WorkoutViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def by_difficulty(self, request):
         """Get workouts filtered by difficulty level"""
-        difficulty = request.query_params.get('level', None)
+        difficulty = request.query_params.get('difficulty', None)
         if difficulty in ['beginner', 'intermediate', 'advanced']:
             workouts = Workout.objects.filter(difficulty=difficulty)
             serializer = self.get_serializer(workouts, many=True)
             return Response(serializer.data)
-        return Response({"error": "Invalid difficulty level. Use: beginner, intermediate, or advanced"}, status=400)
+        return Response({"error": "Invalid difficulty. Use: beginner, intermediate, or advanced"}, status=400)
