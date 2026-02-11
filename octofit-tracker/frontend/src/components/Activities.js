@@ -5,6 +5,7 @@ function Activities() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // API endpoint: https://miniature-fiesta-wx74x6gjqxqc94rw-8000.app.github.dev/api/activities/
   const codespace = process.env.REACT_APP_CODESPACE_NAME || 'localhost:8000';
   const protocol = process.env.REACT_APP_CODESPACE_NAME ? 'https' : 'http';
   const apiUrl = `${protocol}://${codespace}/api/activities/`;

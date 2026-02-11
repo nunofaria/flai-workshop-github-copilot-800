@@ -6,6 +6,7 @@ function Leaderboard() {
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
 
+  // API endpoint: https://miniature-fiesta-wx74x6gjqxqc94rw-8000.app.github.dev/api/leaderboard/
   const codespace = process.env.REACT_APP_CODESPACE_NAME || 'localhost:8000';
   const protocol = process.env.REACT_APP_CODESPACE_NAME ? 'https' : 'http';
   const apiUrl = `${protocol}://${codespace}/api/leaderboard/`;
