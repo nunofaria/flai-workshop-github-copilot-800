@@ -4,9 +4,22 @@
  */
 
 const getApiBaseUrl = () => {
-  const codespace = process.env.REACT_APP_CODESPACE_NAME || 'localhost:8000';
-  const protocol = process.env.REACT_APP_CODESPACE_NAME ? 'https' : 'http';
-  return `${protocol}://${codespace}/api`;
+  const codespaceName = process.env.REACT_APP_CODESPACE_NAME;
+  
+  if (codespaceName) {
+    // GitHub Codespaces environment
+    // Check if it already includes the full domain or just the codespace name
+    if (codespaceName.includes('.app.github.dev')) {
+      // Full URL already provided
+      return `https://${codespaceName}/api`;
+    } else {
+      // Just codespace name - construct full URL with port and domain
+      return `https://${codespaceName}-8000.app.github.dev/api`;
+    }
+  }
+  
+  // Local development
+  return 'http://localhost:8000/api';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
