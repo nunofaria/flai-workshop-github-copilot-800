@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from pymongo import MongoClient
+from octofit_tracker.models import User, Team, Activity, Leaderboard, Workout
 from datetime import datetime, timedelta
 import random
 import os
@@ -39,26 +39,17 @@ class Command(BaseCommand):
             if confirmation.lower() != 'yes':
                 self.stdout.write(self.style.ERROR('Operation cancelled.'))
                 return
-        
-        # Connect to MongoDB
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['octofit_db']
 
-        self.stdout.write(self.style.SUCCESS('Connected to MongoDB'))
-
-        # Clear existing data
+        # Clear existing data using Django ORM
         self.stdout.write('Clearing existing data...')
-        db.users.delete_many({})
-        db.teams.delete_many({})
-        db.activities.delete_many({})
-        db.leaderboard.delete_many({})
-        db.workouts.delete_many({})
+        User.objects.all().delete()
+        Team.objects.all().delete()
+        Activity.objects.all().delete()
+        Leaderboard.objects.all().delete()
+        Workout.objects.all().delete()
+        self.stdout.write(self.style.SUCCESS('Cleared existing data'))
 
-        # Create unique index on email field for users collection
-        db.users.create_index([("email", 1)], unique=True)
-        self.stdout.write(self.style.SUCCESS('Created unique index on email field'))
-
-        # Sample superhero users data
+        # Sample superhero users data - define as dicts for easy iteration
         users_data = [
             # Team Marvel
             {
@@ -144,10 +135,12 @@ class Command(BaseCommand):
             }
         ]
 
-        # Insert users
-        result = db.users.insert_many(users_data)
-        user_ids = result.inserted_ids
-        self.stdout.write(self.style.SUCCESS(f'Inserted {len(user_ids)} users'))
+        # Insert users using Django ORM
+        users = []
+        for user_data in users_data:
+            user = User.objects.create(**user_data)
+            users.append(user)
+        self.stdout.write(self.style.SUCCESS(f'Inserted {len(users)} users'))
 
         # Teams data
         teams_data = [
@@ -179,9 +172,12 @@ class Command(BaseCommand):
             }
         ]
 
-        # Insert teams
-        result = db.teams.insert_many(teams_data)
-        self.stdout.write(self.style.SUCCESS(f'Inserted {len(result.inserted_ids)} teams'))
+        # Insert teams using Django ORM
+        teams = []
+        for team_data in teams_data:
+            team = Team.objects.create(**team_data)
+            teams.append(team)
+        self.stdout.write(self.style.SUCCESS(f'Inserted {len(teams)} teams'))
 
         # Sample activities data
         activity_types = ["running", "cycling", "swimming", "weightlifting", "yoga", "boxing"]
@@ -239,42 +235,44 @@ class Command(BaseCommand):
                     "notes": f"Great {activity_type} session!"
                 })
 
-        # Insert activities
+        # Insert activities using Django ORM (bulk_create for efficiency)
         if activities_data:
-            result = db.activities.insert_many(activities_data)
-            self.stdout.write(self.style.SUCCESS(f'Inserted {len(result.inserted_ids)} activities'))
+            activities = [Activity(**activity_data) for activity_data in activities_data]
+            Activity.objects.bulk_create(activities)
+            self.stdout.write(self.style.SUCCESS(f'Inserted {len(activities)} activities'))
 
-        # Calculate total points for users and update
-        for user in users_data:
-            user_activities = [a for a in activities_data if a["user_email"] == user["email"]]
-            total_points = sum(a["points"] for a in user_activities)
-            db.users.update_one(
-                {"email": user["email"]},
-                {"$set": {"total_points": total_points}}
-            )
+        # Calculate total points for users and update using Django ORM
+        for user in users:
+            user_activities = Activity.objects.filter(user_email=user.email)
+            total_points = sum(activity.points for activity in user_activities)
+            user.total_points = total_points
+            user.save()
 
-        # Calculate total points for teams and update
-        marvel_members_emails = [u["email"] for u in users_data if u["team"] == "Team Marvel"]
-        dc_members_emails = [u["email"] for u in users_data if u["team"] == "Team DC"]
+        # Calculate total points for teams and update using Django ORM
+        marvel_team = Team.objects.get(name="Team Marvel")
+        dc_team = Team.objects.get(name="Team DC")
         
-        marvel_points = sum(a["points"] for a in activities_data if a["user_email"] in marvel_members_emails)
-        dc_points = sum(a["points"] for a in activities_data if a["user_email"] in dc_members_emails)
+        marvel_activities = Activity.objects.filter(user_email__in=[u.email for u in users if u.team == "Team Marvel"])
+        dc_activities = Activity.objects.filter(user_email__in=[u.email for u in users if u.team == "Team DC"])
         
-        db.teams.update_one({"name": "Team Marvel"}, {"$set": {"total_points": marvel_points}})
-        db.teams.update_one({"name": "Team DC"}, {"$set": {"total_points": dc_points}})
+        marvel_team.total_points = sum(activity.points for activity in marvel_activities)
+        dc_team.total_points = sum(activity.points for activity in dc_activities)
+        
+        marvel_team.save()
+        dc_team.save()
 
         # Create leaderboard entries
         leaderboard_data = []
         
         # Individual leaderboard
-        for user in users_data:
-            user_activities = [a for a in activities_data if a["user_email"] == user["email"]]
-            total_points = sum(a["points"] for a in user_activities)
+        for user in users:
+            user_activities = Activity.objects.filter(user_email=user.email)
+            total_points = sum(activity.points for activity in user_activities)
             leaderboard_data.append({
                 "type": "individual",
-                "name": user["name"],
-                "email": user["email"],
-                "team": user["team"],
+                "name": user.name,
+                "email": user.email,
+                "team": user.team,
                 "points": total_points,
                 "rank": 0,  # Will be calculated after sorting
                 "updated_at": datetime.now()
@@ -290,24 +288,25 @@ class Command(BaseCommand):
             {
                 "type": "team",
                 "name": "Team Marvel",
-                "points": marvel_points,
-                "rank": 1 if marvel_points > dc_points else 2,
+                "points": marvel_team.total_points,
+                "rank": 1 if marvel_team.total_points > dc_team.total_points else 2,
                 "updated_at": datetime.now()
             },
             {
                 "type": "team",
                 "name": "Team DC",
-                "points": dc_points,
-                "rank": 1 if dc_points > marvel_points else 2,
+                "points": dc_team.total_points,
+                "rank": 1 if dc_team.total_points > marvel_team.total_points else 2,
                 "updated_at": datetime.now()
             }
         ]
         
         leaderboard_data.extend(team_leaderboard)
         
-        # Insert leaderboard
-        result = db.leaderboard.insert_many(leaderboard_data)
-        self.stdout.write(self.style.SUCCESS(f'Inserted {len(result.inserted_ids)} leaderboard entries'))
+        # Insert leaderboard using Django ORM (bulk_create for efficiency)
+        leaderboard_entries = [Leaderboard(**entry) for entry in leaderboard_data]
+        Leaderboard.objects.bulk_create(leaderboard_entries)
+        self.stdout.write(self.style.SUCCESS(f'Inserted {len(leaderboard_entries)} leaderboard entries'))
 
         # Sample workout recommendations
         workouts_data = [
@@ -383,15 +382,14 @@ class Command(BaseCommand):
             }
         ]
 
-        # Insert workouts
-        result = db.workouts.insert_many(workouts_data)
-        self.stdout.write(self.style.SUCCESS(f'Inserted {len(result.inserted_ids)} workout recommendations'))
+        # Insert workouts using Django ORM (bulk_create for efficiency)
+        workout_objects = [Workout(**workout_data) for workout_data in workouts_data]
+        Workout.objects.bulk_create(workout_objects)
+        self.stdout.write(self.style.SUCCESS(f'Inserted {len(workout_objects)} workout recommendations'))
 
         self.stdout.write(self.style.SUCCESS('\n=== Database Population Complete ==='))
-        self.stdout.write(self.style.SUCCESS(f'Users: {len(users_data)}'))
-        self.stdout.write(self.style.SUCCESS(f'Teams: {len(teams_data)}'))
-        self.stdout.write(self.style.SUCCESS(f'Activities: {len(activities_data)}'))
-        self.stdout.write(self.style.SUCCESS(f'Leaderboard entries: {len(leaderboard_data)}'))
-        self.stdout.write(self.style.SUCCESS(f'Workouts: {len(workouts_data)}'))
-        
-        client.close()
+        self.stdout.write(self.style.SUCCESS(f'Users: {User.objects.count()}'))
+        self.stdout.write(self.style.SUCCESS(f'Teams: {Team.objects.count()}'))
+        self.stdout.write(self.style.SUCCESS(f'Activities: {Activity.objects.count()}'))
+        self.stdout.write(self.style.SUCCESS(f'Leaderboard entries: {Leaderboard.objects.count()}'))
+        self.stdout.write(self.style.SUCCESS(f'Workouts: {Workout.objects.count()}'))
