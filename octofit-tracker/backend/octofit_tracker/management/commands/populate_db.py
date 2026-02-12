@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 from octofit_tracker.models import User, Team, Activity, Leaderboard, Workout
-from datetime import datetime, timedelta
+from datetime import timedelta
 import random
 import os
 import sys
@@ -58,7 +59,7 @@ class Command(BaseCommand):
                 "team": "Team Marvel",
                 "avatar": "🦾",
                 "total_points": 0,
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             {
                 "name": "Steve Rogers",
@@ -66,7 +67,7 @@ class Command(BaseCommand):
                 "team": "Team Marvel",
                 "avatar": "🛡️",
                 "total_points": 0,
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             {
                 "name": "Natasha Romanoff",
@@ -74,7 +75,7 @@ class Command(BaseCommand):
                 "team": "Team Marvel",
                 "avatar": "🕷️",
                 "total_points": 0,
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             {
                 "name": "Thor Odinson",
@@ -82,7 +83,7 @@ class Command(BaseCommand):
                 "team": "Team Marvel",
                 "avatar": "⚡",
                 "total_points": 0,
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             {
                 "name": "Bruce Banner",
@@ -90,7 +91,7 @@ class Command(BaseCommand):
                 "team": "Team Marvel",
                 "avatar": "💪",
                 "total_points": 0,
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             # Team DC
             {
@@ -99,7 +100,7 @@ class Command(BaseCommand):
                 "team": "Team DC",
                 "avatar": "🦇",
                 "total_points": 0,
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             {
                 "name": "Clark Kent",
@@ -107,7 +108,7 @@ class Command(BaseCommand):
                 "team": "Team DC",
                 "avatar": "🦸",
                 "total_points": 0,
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             {
                 "name": "Diana Prince",
@@ -115,7 +116,7 @@ class Command(BaseCommand):
                 "team": "Team DC",
                 "avatar": "⭐",
                 "total_points": 0,
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             {
                 "name": "Barry Allen",
@@ -123,7 +124,7 @@ class Command(BaseCommand):
                 "team": "Team DC",
                 "avatar": "⚡",
                 "total_points": 0,
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             {
                 "name": "Arthur Curry",
@@ -131,7 +132,7 @@ class Command(BaseCommand):
                 "team": "Team DC",
                 "avatar": "🔱",
                 "total_points": 0,
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             }
         ]
 
@@ -155,7 +156,7 @@ class Command(BaseCommand):
                     "Bruce Banner"
                 ],
                 "total_points": 0,
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             {
                 "name": "Team DC",
@@ -168,7 +169,7 @@ class Command(BaseCommand):
                     "Arthur Curry"
                 ],
                 "total_points": 0,
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             }
         ]
 
@@ -188,7 +189,7 @@ class Command(BaseCommand):
             num_activities = random.randint(5, 10)
             for i in range(num_activities):
                 days_ago = random.randint(1, 30)
-                activity_date = datetime.now() - timedelta(days=days_ago)
+                activity_date = timezone.now() - timedelta(days=days_ago)
                 activity_type = random.choice(activity_types)
                 
                 # Generate realistic metrics based on activity type
@@ -275,7 +276,7 @@ class Command(BaseCommand):
                 "team": user.team,
                 "points": total_points,
                 "rank": 0,  # Will be calculated after sorting
-                "updated_at": datetime.now()
+                "updated_at": timezone.now()
             })
         
         # Sort and assign ranks
@@ -290,14 +291,14 @@ class Command(BaseCommand):
                 "name": "Team Marvel",
                 "points": marvel_team.total_points,
                 "rank": 1 if marvel_team.total_points > dc_team.total_points else 2,
-                "updated_at": datetime.now()
+                "updated_at": timezone.now()
             },
             {
                 "type": "team",
                 "name": "Team DC",
                 "points": dc_team.total_points,
                 "rank": 1 if dc_team.total_points > marvel_team.total_points else 2,
-                "updated_at": datetime.now()
+                "updated_at": timezone.now()
             }
         ]
         
@@ -322,7 +323,7 @@ class Command(BaseCommand):
                     {"name": "Squats", "sets": 4, "reps": 10}
                 ],
                 "target_muscle_groups": ["chest", "back", "legs"],
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             {
                 "name": "Speed Force Cardio",
@@ -336,7 +337,7 @@ class Command(BaseCommand):
                     {"name": "Mountain Climbers", "sets": 3, "reps": 20}
                 ],
                 "target_muscle_groups": ["cardio", "legs", "core"],
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             {
                 "name": "Warrior Flexibility Flow",
@@ -350,7 +351,7 @@ class Command(BaseCommand):
                     {"name": "Cool Down Stretches", "duration": "5 min"}
                 ],
                 "target_muscle_groups": ["flexibility", "balance", "core"],
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             {
                 "name": "Combat Training Circuit",
@@ -364,7 +365,7 @@ class Command(BaseCommand):
                     {"name": "Medicine Ball Slams", "sets": 4, "reps": 15}
                 ],
                 "target_muscle_groups": ["cardio", "core", "arms"],
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             },
             {
                 "name": "Aquatic Endurance",
@@ -378,7 +379,7 @@ class Command(BaseCommand):
                     {"name": "Treading Water", "duration": "5 min"}
                 ],
                 "target_muscle_groups": ["full-body", "cardio", "endurance"],
-                "created_at": datetime.now()
+                "created_at": timezone.now()
             }
         ]
 
